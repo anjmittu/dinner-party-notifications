@@ -21,4 +21,6 @@ def send_message(event, context):
                          to=pubsub_message["to_number"]
                      )
 
+    # TODO: update the last question sent in the db
+
     print(message.sid)
