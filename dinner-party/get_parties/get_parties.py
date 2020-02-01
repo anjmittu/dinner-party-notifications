@@ -2,6 +2,7 @@ import os
 import time
 from google.cloud import pubsub_v1
 from dinner_party_database.utils import Utils
+import json
 
 def get_groups(request):
     # This will get all the parties
@@ -29,9 +30,26 @@ def get_groups(request):
 
         if cooker is None:
             print("No one is able to cook")
+            for person in party["people"]:
+                data = json.dumps({
+                    "number": Utils.get_person_by_id(person)["number"],
+                    "message": "No one can cook today.  Are you able to cook?",
+                    "last_question": 9
+                })
+
+                futures.update({data: None})
+
+                future = publisher.publish(topic_path, data=data.encode("utf-8"))
+                futures[data] = future
+
+                future.add_done_callback(get_callback(future, data))
             return
 
-        data = cooker["number"]
+        data = json.dumps({
+            "number": cooker["number"],
+            "message": "It is your turn to cook today.  Are you able to cook?",
+            "last_question": 1
+        })
         print("{} will be cooking".format(data))
 
         futures.update({data: None})
