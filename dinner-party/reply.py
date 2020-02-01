@@ -1,6 +1,7 @@
 from twilio.twiml.messaging_response import MessagingResponse
 from urllib import parse
 from dinner_party_database.utils import Utils
+import dateparser
 
 
 def reply(request):
@@ -19,27 +20,40 @@ def reply(request):
     if last_question == 1:
         if "yes" in reply_text.lower():
             # Add a message
-            update_event(
-                get_event(from_number),
-                {"$set": {"who_cooking": get_person(from_number, {"_id": 1})["_id"]}}
+            Utils.update_event(
+                Utils.get_event(from_number)["_id"],
+                {"$set": {"who_cooking": Utils.get_person(from_number, {"_id": 1})["_id"]}}
             )
-            Utils.get_person(from_number)
             resp.message("What is for dinner?")
-            # TODO: save cook info in current dinner event
+            Utils.update_question(from_number, 2)
         if "no" in reply_text.lower():
             resp.message("Will you still be attending dinner?")
+            Utils.update_question(from_number, 4)
     elif last_question == 2:
-        resp.message("What time will dinner be ready?")
-        # TODO: save the response to the current dinner event in db
+        Utils.update_event(
+            Utils.get_event(from_number)["_id"],
+            {"$set": {"whats_for_dinner": reply_text}}
+        )
+
+        resp.message("What time will dinner be ready? (HH:MM AM|PM)")
+        Utils.update_question(from_number, 3)
     elif last_question == 3:
         #TODO: Send message with summary of dinner
+
+        Utils.update_event(
+            Utils.get_event(from_number)["_id"],
+            {"$set": {"time": dateparser.parse(reply_text)}}
+        )
+
         resp.message("Great, see you then!")
+        Utils.update_question(from_number, 0)
     elif last_question == 4:
         if "yes" in reply_text.lower():
             resp.message("Alright we will update you when dinner plans are made")
             # TODO: message party
         if "no" in reply_text.lower():
             resp.message("Alright, maybe next time :(")
+
 
     # TODO: update the last question sent in the db
 
