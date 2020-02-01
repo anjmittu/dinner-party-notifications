@@ -19,6 +19,11 @@ def reply(request):
     if last_question == 1:
         if "yes" in reply_text.lower():
             # Add a message
+            update_event(
+                get_event(from_number),
+                {"$set": {"who_cooking": get_person(from_number, {"_id": 1})["_id"]}}
+            )
+            Utils.get_person(from_number)
             resp.message("What is for dinner?")
             # TODO: save cook info in current dinner event
         if "no" in reply_text.lower():
