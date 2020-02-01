@@ -1,6 +1,16 @@
 import base64
 from twilio.rest import Client
 import os
+import pymongo
+
+def update_question(phone, n):
+    client = pymongo.MongoClient(os.getenv("MONGODB_URL"))
+    db = client["diner-party"]
+    col = db["people"]
+    col.update_one(
+        {"number": phone},
+        {"$set": {"last_question": n}}
+    )
 
 def send_message(event, context):
     """Triggered from a message on a Cloud Pub/Sub topic.
@@ -22,5 +32,7 @@ def send_message(event, context):
                      )
 
     # TODO: update the last question sent in the db
+    print("phone: " + number)
+    update_question(number, 1)
 
     print(message.sid)
