@@ -1,5 +1,6 @@
 from twilio.twiml.messaging_response import MessagingResponse
 from urllib import parse
+from dinner_party_database.utils import Utils
 
 
 def reply(request):
@@ -12,8 +13,8 @@ def reply(request):
     # Start our response
     resp = MessagingResponse()
 
-    # TODO: From the db, look up what the last question sent to the from_number
-    last_question = None
+    last_question = Utils.get_last_question(from_number)
+    print(last_question)
 
     if last_question == 1:
         if "yes" in reply_text.lower():
