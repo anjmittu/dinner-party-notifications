@@ -4,9 +4,16 @@ from dinner_party_database.utils import Utils
 import dateparser
 from google.cloud import pubsub_v1
 import os
-import time
 import json
 
+def found_cook(resp, cook_number):
+    # Updates who is cooking in the database
+    Utils.update_event(
+        Utils.get_event(cook_number)["_id"],
+        {"$set": {"who_cooking": Utils.get_person(cook_number, {"_id": 1})["_id"]}}
+    )
+    resp.message("What is for dinner?")
+    Utils.update_question(cook_number, 2)
 
 def reply(request):
     # Set up pub/sub system which will trigger other lambda
@@ -24,31 +31,27 @@ def reply(request):
 
         return callback
 
+    # Start our response
+    resp = MessagingResponse()
+
     request_data = request.get_data()
     data_dict = dict(parse.parse_qsl(str(request_data)))
+    print(data_dict)
 
     from_number = data_dict["From"]
     reply_text = data_dict["Body"]
 
-    # Start our response
-    resp = MessagingResponse()
-
     last_question = Utils.get_last_question(from_number)
+    print("last question: {}".format(last_question))
 
     if last_question == 1:
         if "yes" in reply_text.lower():
-            # Updates who is cooking in the database
-            Utils.update_event(
-                Utils.get_event(from_number)["_id"],
-                {"$set": {"who_cooking": Utils.get_person(from_number, {"_id": 1})["_id"]}}
-            )
-            resp.message("What is for dinner?")
-            Utils.update_question(from_number, 2)
+            found_cook(resp, from_number)
         if "no" in reply_text.lower():
             resp.message("Will you still be attending dinner?")
             Utils.update_question(from_number, 4)
             original_cook = Utils.get_person(from_number, {"_id": 1, "name":1})
-
+            # Send a message to everyone else in the party to see if they can cook
             for person in Utils.get_party(from_number)["people"]:
                 if person != original_cook["_id"]:
                     person_data = Utils.get_person_by_id(person, {"number": 1, "name": 1})
@@ -61,8 +64,6 @@ def reply(request):
                     future = publisher.publish(topic_path, data=data.encode("utf-8"))
                     futures[data] = future
                     future.add_done_callback(get_callback(future, data))
-            while futures:
-                time.sleep(5)
     elif last_question == 2:
         Utils.update_event(
             Utils.get_event(from_number)["_id"],
@@ -83,8 +84,15 @@ def reply(request):
         Utils.update_question(from_number, 0)
     elif last_question == 4:
         if "yes" in reply_text.lower():
-            resp.message("Alright we will update you when dinner plans are made")
-            # TODO: message party
+            resp.message("Alright I will update you when dinner plans are made")
+        if "no" in reply_text.lower():
+            resp.message("Alright, maybe next time :(")
+    elif last_question == 8:
+        if "yes" in reply_text.lower():
+            if not Utils.is_there_a_cook(from_number):
+                found_cook(resp, from_number)
+            else:
+                resp.message("Someone has already said they will cook.  I will update you when dinner plans ready.")
         if "no" in reply_text.lower():
             resp.message("Alright, maybe next time :(")
 
