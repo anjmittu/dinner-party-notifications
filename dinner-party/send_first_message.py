@@ -31,7 +31,6 @@ def send_message(event, context):
                          to=number
                      )
 
-    # TODO: update the last question sent in the db
     print("phone: " + number)
     update_question(number, 1)
 
