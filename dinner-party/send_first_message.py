@@ -8,7 +8,7 @@ def send_message(event, context):
          event (dict): Event payload.
          context (google.cloud.functions.Context): Metadata for the event.
     """
-    pubsub_message = base64.b64decode(event['data']).decode('utf-8')
+    number = base64.b64decode(event['data']).decode('utf-8')
     account_sid = os.getenv('ACCT_ID')
     auth_token = os.getenv('AUTH_TOK')
     client = Client(account_sid, auth_token)
@@ -18,7 +18,7 @@ def send_message(event, context):
                     .create(
                          body=message_cook,
                          from_='+12029316658',
-                         to=pubsub_message["to_number"]
+                         to=number
                      )
 
     print(message.sid)
