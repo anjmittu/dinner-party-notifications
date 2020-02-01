@@ -1,0 +1,4 @@
+# Function dependencies, for example:
+# package>=version
+twilio
+git+https://github.com/anjmittu/dinner-party-database
