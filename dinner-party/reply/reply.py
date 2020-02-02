@@ -89,9 +89,9 @@ def reply(request):
         cookid = cook["_id"]
         cook_name = cook["name"]
         event = Utils.get_event(from_number)
-        time = time.strftime("%I:%M %p.", event["time"])
+        dinner_time = time.strftime("%I:%M %p.", event["time"])
 
-        resp = cook_name + " is cooking " + event["whats_for_dinner"] + "for dinner. Dinner will be at " + time
+        resp = cook_name + " is cooking " + event["whats_for_dinner"] + "for dinner. Dinner will be at " + dinner_time
 
         for person in people:
             if person != cookid:
