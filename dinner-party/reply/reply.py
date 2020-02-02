@@ -47,6 +47,7 @@ def reply(request):
     if last_question == 1:
         if "yes" in reply_text.lower():
             found_cook(resp, from_number)
+            Utils.add_to_event(from_number)
         if "no" in reply_text.lower():
             resp.message("Will you still be attending dinner?")
             Utils.update_question(from_number, 4)
@@ -85,16 +86,25 @@ def reply(request):
     elif last_question == 4:
         if "yes" in reply_text.lower():
             resp.message("Alright I will update you when dinner plans are made")
+            Utils.add_to_event(from_number)
         if "no" in reply_text.lower():
             resp.message("Alright, maybe next time :(")
+            Utils.remove_person_to_event(from_number)
     elif last_question == 8:
         if "yes" in reply_text.lower():
             if not Utils.is_there_a_cook(from_number):
                 found_cook(resp, from_number)
             else:
                 resp.message("Someone has already said they will cook.  I will update you when dinner plans ready.")
+            Utils.add_to_event(from_number)
         if "no" in reply_text.lower():
             resp.message("Alright, maybe next time :(")
+            Utils.remove_person_to_event(from_number)
+
+            if Utils.check_if_everyone_respond(from_number):
+                if not Utils.is_anyone_coming(from_number):
+                    # TODO: send message to everyone saying no one can cook
+                    pass
 
 
     return str(resp)
