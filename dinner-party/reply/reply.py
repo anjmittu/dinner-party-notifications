@@ -83,6 +83,19 @@ def reply(request):
 
         resp.message("Great, see you then!")
         Utils.update_question(from_number, 0)
+
+        people = Utils.get_party(from_number)["people"]
+        cook = Utils.get_person(from_number, {"_id": 1, "name": 1})
+        cookid = cook["_id"]
+        cook_name = cook["name"]
+        event = Utils.get_event(from_number)
+        time = time.strftime("%I:%M %p.", event["time"])
+
+        resp = cook_name + " is cooking " + event["whats_for_dinner"] + "for dinner. Dinner will be at " + time
+
+        for person in people:
+            if person != cookid:
+                number = get_person_by_id(person, {"number": 1})["number"]
     elif last_question == 4:
         if "yes" in reply_text.lower():
             resp.message("Alright I will update you when dinner plans are made")
