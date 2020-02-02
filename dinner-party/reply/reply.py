@@ -5,6 +5,7 @@ import dateparser
 from google.cloud import pubsub_v1
 import os
 import json
+import time
 
 def found_cook(resp, cook_number):
     # Updates who is cooking in the database
@@ -97,8 +98,8 @@ def reply(request):
                 number = Utils.get_person_by_id(person, {"number": 1})["number"]
 
                 Utils.trigger_function(json.dumps({
-                    "number:" number,
-                    "message", resp,
+                    "number": number,
+                    "message": resp,
                     "last_question": 0
                 }))
     elif last_question == 4:
