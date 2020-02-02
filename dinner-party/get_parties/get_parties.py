@@ -1,5 +1,3 @@
-import os
-import time
 from dinner_party_database.utils import Utils
 import json
 
@@ -10,6 +8,7 @@ def get_groups(request):
 
     # Loops through each party
     for party in all_groups:
+        # Figures out who is cooking
         cooker = Utils.get_cooker(party["people"])
 
         if cooker is None:

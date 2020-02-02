@@ -1,6 +1,7 @@
 from twilio.twiml.messaging_response import MessagingResponse
 from urllib import parse
 from dinner_party_database.utils import Utils
+from dinner_party_database.response_utils import ResponseUtils as ru
 import dateparser
 import json
 
@@ -27,11 +28,13 @@ def reply(request):
     last_question = Utils.get_last_question(from_number)
     print("last question: {}".format(last_question))
 
+    reply_type = ru.response_sentiment(reply_text)
+
     if last_question == 1:
-        if "yes" in reply_text.lower():
+        if reply_type == 1:
             found_cook(resp, from_number)
             Utils.add_person_to_event(from_number)
-        if "no" in reply_text.lower():
+        if reply_type == -1:
             resp.message("Will you still be attending dinner?")
             Utils.update_question(from_number, 4)
             original_cook = Utils.get_person(from_number, {"_id": 1, "name":1})
@@ -79,14 +82,14 @@ def reply(request):
                 }))
 
     elif last_question == 4 or last_question == 5:
-        if "yes" in reply_text.lower():
+        if reply_type == 1:
             if last_question == 4:
                 resp.message("Alright I will update you when dinner plans are made")
             else:
                 resp.message("Great, see you then!")
             Utils.add_person_to_event(from_number)
             Utils.update_question(from_number, 0)
-        if "no" in reply_text.lower():
+        if reply_type == -1:
             resp.message("Alright, maybe next time :(")
             Utils.remove_person_to_event(from_number)
             Utils.update_question(from_number, 0)
@@ -99,14 +102,14 @@ def reply(request):
                         "message": "{} will all be coming for dinner".format(Utils.get_list_people_coming(from_number)),
                         "last_question": 5
                     }))
-    elif last_question == 8:
-        if "yes" in reply_text.lower():
+    elif last_question == 8 or last_question == 9:
+        if reply_type == 1:
             if not Utils.is_there_a_cook(from_number):
                 found_cook(resp, from_number)
             else:
                 resp.message("Someone has already said they will cook.  I will update you when dinner plans ready.")
             Utils.add_person_to_event(from_number)
-        if "no" in reply_text.lower():
+        if reply_type == -1:
             resp.message("Alright, maybe next time :(")
             Utils.remove_person_to_event(from_number)
             Utils.update_question(from_number, 0)
