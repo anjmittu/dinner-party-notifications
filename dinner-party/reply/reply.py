@@ -17,21 +17,6 @@ def found_cook(resp, cook_number):
     Utils.update_question(cook_number, 2)
 
 def reply(request):
-    # Set up pub/sub system which will trigger other lambda
-    publisher = pubsub_v1.PublisherClient()
-    topic_path = publisher.topic_path(os.getenv("PROJECT_ID"), os.getenv("TOPIC_NAME"))
-    futures = dict()
-
-    def get_callback(f, data):
-        def callback(f):
-            try:
-                print(f.result())
-                futures.pop(data)
-            except:  # noqa
-                print("Please handle {} for {}.".format(f.exception(), data))
-
-        return callback
-
     # Start our response
     resp = MessagingResponse()
 
@@ -57,15 +42,12 @@ def reply(request):
             for person in Utils.get_party(from_number)["people"]:
                 if person != original_cook["_id"]:
                     person_data = Utils.get_person_by_id(person, {"number": 1, "name": 1})
-                    data = json.dumps({
+                    Utils.trigger_function(json.dumps({
                         "number": person_data["number"],
                         "message": "{} can not cook today.  Are you able to cook?".format(original_cook["name"]),
                         "last_question": 8
-                    })
-                    futures.update({data: None})
-                    future = publisher.publish(topic_path, data=data.encode("utf-8"))
-                    futures[data] = future
-                    future.add_done_callback(get_callback(future, data))
+                    }))
+
     elif last_question == 2:
         Utils.update_event(
             Utils.get_event(from_number)["_id"],
@@ -75,8 +57,6 @@ def reply(request):
         resp.message("What time will dinner be ready? (HH:MM AM|PM)")
         Utils.update_question(from_number, 3)
     elif last_question == 3:
-        #TODO: Send message with summary of dinner
-
         Utils.update_event(
             Utils.get_event(from_number)["_id"],
             {"$set": {"time": dateparser.parse(reply_text)}}
@@ -87,15 +67,13 @@ def reply(request):
 
         people = Utils.get_party(from_number)["people"]
         cook = Utils.get_person(from_number, {"_id": 1, "name": 1})
-        cookid = cook["_id"]
-        cook_name = cook["name"]
         event = Utils.get_event(from_number)
         dinner_time = time.strftime("%I:%M %p.", event["time"])
 
-        resp = cook_name + " is cooking " + event["whats_for_dinner"] + "for dinner. Dinner will be at " + dinner_time
+        resp = "{} is cooking {} for dinner. Dinner will be at {}".format(cook["name"], event["whats_for_dinner"], dinner_time)
 
         for person in people:
-            if person != cookid:
+            if person != cook["_id"]:
                 number = Utils.get_person_by_id(person, {"number": 1})["number"]
 
                 Utils.trigger_function(json.dumps({
