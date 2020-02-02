@@ -68,7 +68,7 @@ def reply(request):
         people = Utils.get_party(from_number)["people"]
         cook = Utils.get_person(from_number, {"_id": 1, "name": 1})
         event = Utils.get_event(from_number)
-        dinner_time = time.strftime("%I:%M %p.", event["time"])
+        dinner_time = event["time"].strftime("%I:%M %p.")
 
         resp = "{} is cooking {} for dinner. Dinner will be at {}".format(cook["name"], event["whats_for_dinner"], dinner_time)
 
