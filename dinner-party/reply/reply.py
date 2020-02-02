@@ -94,7 +94,7 @@ def reply(request):
 
         for person in people:
             if person != cookid:
-                number = get_person_by_id(person, {"number": 1})["number"]
+                number = Utils.get_person_by_id(person, {"number": 1})["number"]
 
                 Utils.trigger_function(json.dumps({
                     "number:" number,
