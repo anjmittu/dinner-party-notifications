@@ -96,6 +96,12 @@ def reply(request):
         for person in people:
             if person != cookid:
                 number = get_person_by_id(person, {"number": 1})["number"]
+
+                Utils.trigger_function(json.dumps({
+                    "number:" number,
+                    "message", resp,
+                    "last_question": 
+                }))
     elif last_question == 4:
         if "yes" in reply_text.lower():
             resp.message("Alright I will update you when dinner plans are made")
