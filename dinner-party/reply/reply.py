@@ -99,7 +99,7 @@ def reply(request):
                 Utils.trigger_function(json.dumps({
                     "number:" number,
                     "message", resp,
-                    "last_question": 
+                    "last_question": 0
                 }))
     elif last_question == 4:
         if "yes" in reply_text.lower():
