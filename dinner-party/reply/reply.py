@@ -89,7 +89,7 @@ def reply(request):
         cookid = cook["_id"]
         cook_name = cook["name"]
         event = Utils.get_event(from_number)
-        dinner_time = time.strftime("%I:%M %p.", event["time"])
+        dinner_time = event["time"].strftime("%I:%M %p.")
 
         resp = cook_name + " is cooking " + event["whats_for_dinner"] + "for dinner. Dinner will be at " + dinner_time
 
