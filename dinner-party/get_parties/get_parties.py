@@ -8,6 +8,8 @@ def get_groups(request):
 
     # Loops through each party
     for party in all_groups:
+        Utils.remove_event(party)
+
         # Figures out who is cooking
         cooker = Utils.get_cooker(party["people"])
 
