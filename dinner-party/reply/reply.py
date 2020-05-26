@@ -36,8 +36,7 @@ def reply(request):
             found_cook(resp, from_number)
             Utils.add_person_to_event(from_number)
         if reply_type == -1:
-            resp.message("Will you still be attending dinner?")
-            Utils.update_question(from_number, 4)
+            resp.message("Alright I will update you when dinner plans are made")
             original_cook = Utils.get_person(from_number, {"_id": 1, "name":1})
             # Send a message to everyone else in the party to see if they can cook
             for person in Utils.get_party(from_number)["people"]:
@@ -96,12 +95,9 @@ def reply(request):
                     "last_question": 5
                 }))
 
-    elif last_question == 4 or last_question == 5:
+    elif last_question == 5:
         if reply_type == 1:
-            if last_question == 4:
-                resp.message("Alright I will update you when dinner plans are made")
-            else:
-                resp.message("Great, see you then!")
+            resp.message("Great, see you then!")
             Utils.add_person_to_event(from_number)
             Utils.update_question(from_number, 0)
         if reply_type == -1:
@@ -121,13 +117,14 @@ def reply(request):
         if reply_type == 1:
             if not Utils.is_there_a_cook(from_number):
                 found_cook(resp, from_number)
+                Utils.add_person_to_event(from_number)
             else:
                 resp.message("Someone has already said they will cook.  I will update you when dinner plans ready.")
-            Utils.add_person_to_event(from_number)
         if reply_type == -1:
-            resp.message("Alright, maybe next time :(")
-            Utils.remove_person_to_event(from_number)
-            Utils.update_question(from_number, 0)
+            if last_question == 9:
+                resp.message("Alright, maybe next time :(")
+                Utils.remove_person_to_event(from_number)
+                Utils.update_question(from_number, 0)
 
             if Utils.check_if_everyone_respond(from_number):
                 if not Utils.is_anyone_coming(from_number):
